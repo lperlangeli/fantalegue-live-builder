@@ -3,22 +3,44 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Player, Assignment } from "@/types/fantacalcio";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PlayerListProps {
   players: Player[];
   assignments: Assignment[];
+  selectedRole: 'P' | 'D' | 'C' | 'A';
+  sessionId: string;
+  isAdmin: boolean;
 }
 
-export const PlayerList = ({ players, assignments }: PlayerListProps) => {
+export const PlayerList = ({ players, assignments, selectedRole, sessionId, isAdmin }: PlayerListProps) => {
   const assignedPlayerIds = useMemo(() => 
     new Set(assignments.map(a => a.player_id)), 
     [assignments]
   );
 
   const sortedPlayers = useMemo(() => 
-    [...players].sort((a, b) => b.fvm - a.fvm),
-    [players]
+    [...players]
+      .filter(p => p.ruolo === selectedRole)
+      .sort((a, b) => b.fvm - a.fvm),
+    [players, selectedRole]
   );
+
+  const handleSelectPlayer = async (player: Player) => {
+    if (!isAdmin) return;
+
+    const { error } = await supabase
+      .from('current_player')
+      .upsert({
+        session_id: sessionId,
+        player_id: player.id,
+        updated_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.error("Error setting current player:", error);
+    }
+  };
 
   const roleColors = {
     P: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100',
@@ -36,9 +58,10 @@ export const PlayerList = ({ players, assignments }: PlayerListProps) => {
           {sortedPlayers.map(player => (
             <div
               key={player.id}
+              onClick={() => handleSelectPlayer(player)}
               className={`p-3 border rounded-lg transition-all ${
-                assignedPlayerIds.has(player.id) ? 'opacity-50 bg-muted' : 'hover:bg-muted/50'
-              }`}
+                isAdmin ? 'cursor-pointer hover:border-primary' : ''
+              } ${assignedPlayerIds.has(player.id) ? 'opacity-50 bg-muted' : 'hover:bg-muted/50'}`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex-1">

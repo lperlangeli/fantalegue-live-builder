@@ -55,16 +55,21 @@ const CreateSession = () => {
 
       if (sessionError) throw sessionError;
 
-      // Crea partecipante admin
+      // Crea tutti i partecipanti automaticamente
+      const participantsToCreate = [];
+      for (let i = 0; i < numParticipants; i++) {
+        participantsToCreate.push({
+          session_id: session.id,
+          user_id: i === 0 ? authData.user.id : null,
+          nickname: i === 0 ? nickname : `Squadra ${i + 1}`,
+          credits_remaining: budget,
+          is_admin: i === 0
+        });
+      }
+
       const { error: participantError } = await supabase
         .from('participants')
-        .insert({
-          session_id: session.id,
-          user_id: authData.user.id,
-          nickname,
-          credits_remaining: budget,
-          is_admin: true
-        });
+        .insert(participantsToCreate);
 
       if (participantError) throw participantError;
 

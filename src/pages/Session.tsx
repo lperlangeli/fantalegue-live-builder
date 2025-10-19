@@ -18,6 +18,7 @@ const Session = () => {
   const [currentPlayer, setCurrentPlayer] = useState<CurrentPlayer | null>(null);
   const [currentUser, setCurrentUser] = useState<Participant | null>(null);
   const [players] = useState<Player[]>(playerData);
+  const [selectedRole, setSelectedRole] = useState<'P' | 'D' | 'C' | 'A'>('P');
 
   useEffect(() => {
     if (!sessionId) return;
@@ -118,6 +119,7 @@ const Session = () => {
                   players={players}
                   assignments={assignments}
                   isAdmin={isAdmin}
+                  onRoleChange={setSelectedRole}
                 />
               </TabsContent>
               <TabsContent value="formazione">
@@ -147,7 +149,13 @@ const Session = () => {
 
           {/* Right Column - Players by Quotation */}
           <div className="lg:col-span-1">
-            <PlayerList players={players} assignments={assignments} />
+            <PlayerList 
+              players={players} 
+              assignments={assignments}
+              selectedRole={selectedRole}
+              sessionId={sessionId!}
+              isAdmin={isAdmin}
+            />
           </div>
         </div>
 

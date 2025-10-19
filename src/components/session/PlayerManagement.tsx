@@ -12,11 +12,17 @@ interface PlayerManagementProps {
   players: Player[];
   assignments: Assignment[];
   isAdmin: boolean;
+  onRoleChange?: (role: 'P' | 'D' | 'C' | 'A') => void;
 }
 
-export const PlayerManagement = ({ sessionId, players, assignments, isAdmin }: PlayerManagementProps) => {
+export const PlayerManagement = ({ sessionId, players, assignments, isAdmin, onRoleChange }: PlayerManagementProps) => {
   const [selectedRole, setSelectedRole] = useState<'P' | 'D' | 'C' | 'A'>('P');
   const [searchTerm, setSearchTerm] = useState('');
+
+  const handleRoleChange = (role: 'P' | 'D' | 'C' | 'A') => {
+    setSelectedRole(role);
+    onRoleChange?.(role);
+  };
 
   const assignedPlayerIds = useMemo(() => 
     new Set(assignments.map(a => a.player_id)), 
@@ -64,7 +70,7 @@ export const PlayerManagement = ({ sessionId, players, assignments, isAdmin }: P
             <Button
               key={role}
               variant={selectedRole === role ? 'default' : 'outline'}
-              onClick={() => setSelectedRole(role)}
+              onClick={() => handleRoleChange(role)}
               size="sm"
             >
               {role}
